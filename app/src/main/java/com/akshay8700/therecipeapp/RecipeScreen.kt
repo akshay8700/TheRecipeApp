@@ -1,6 +1,7 @@
 package com.akshay8700.therecipeapp
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -23,13 +24,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun RecipeScreen(modifier: Modifier = Modifier) {
+fun RecipeScreen(modifier: Modifier = Modifier,
+                 viewState:MainViewModel.RecipeState,
+                 navigateToDetail: (Category) -> Unit
+) {
     // Getting viewmodel
-    val recipeViewModel: MainViewModel = viewModel()
+    // val recipeViewModel: MainViewModel = viewModel(), NO NEED IN v2 MOVED TO 2nd PAREMETER
 
     // Getting categoriesState from recipleViewModel, Simply we are just accessing viewStates of our display
     // Like if we want to know if its loading or not or if its error null or not
-    val viewState by recipeViewModel.categoriesState
+    // val viewState by recipeViewModel.categoriesState, MOVED TO 2nd PAREMETER OF THIS FUN in v2
 
     // Box with covering full screen and when statement like java switch is checking from viewState if loading
     // is true he will show loading progress bar and same to if there is error show Error msg
@@ -43,30 +47,36 @@ fun RecipeScreen(modifier: Modifier = Modifier) {
                 Text("ERROR OCCURRED")
             }
             else ->{
-                CategoryScreen(categories = viewState.list)
+                CategoryScreen(categories = viewState.list,
+                    navigateToDetail)
             }
         }
     }
 }
 
 @Composable
-fun CategoryScreen(categories: List<Category>) {
+fun CategoryScreen(categories: List<Category>,
+                   navigateToDetail: (Category) -> Unit) {
     LazyVerticalGrid(GridCells.Fixed(2), modifier = Modifier.fillMaxSize()) {
         items(categories){
                 category ->
-            CategoryItem(category = category)
+            CategoryItem(category = category, navigateToDetail)
         }
     }
 }
 
 // How actually each item looks
 @Composable
-fun CategoryItem(category: Category){
+fun CategoryItem(category: Category,
+                 navigateToDetail: (Category) -> Unit
+){
     Column(modifier = Modifier
         .padding(8.dp)
-        .fillMaxSize(),
+        .fillMaxSize()
+        .clickable { navigateToDetail(category) },
         horizontalAlignment = Alignment.CenterHorizontally)
     {
+        // Category Image
         Image(
             painter = rememberAsyncImagePainter(category.strCategoryThumb),
             contentDescription = null,
@@ -75,6 +85,7 @@ fun CategoryItem(category: Category){
                 .aspectRatio(1f)
         )
 
+        // Category Title
         Text(
             text = category.strCategory,
             color = Color.Black,
